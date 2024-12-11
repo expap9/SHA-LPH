@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Language" content="th">
+  <title>LPH-SHA-4-SHARE</title>
+  <style>
+    /* พื้นฐานของหน้าเว็บ */
+    body {
+      background-color: #ffe6e9;
+      font-family: 'Arial', sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    h1 {
+      color: #d63384;
+      font-size: 2.5em;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    /* กล่องสำหรับอินพุต */
+    #input-container {
+      background-color: #ffffff;
+      border-radius: 20px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      padding: 20px 40px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      width: 90%;
+      max-width: 500px;
+    }
+
+    #input-field {
+      border: 2px solid #f6abb6;
+      border-radius: 10px;
+      background-color: #fff0f3;
+      font-size: 1.2em;
+      color: #d63384;
+      width: 100%;
+      padding: 10px 15px;
+      text-align: center;
+    }
+
+    #input-field:focus {
+      outline: none;
+      border-color: #ff8fa3;
+    }
+
+    /* ปุ่มส่งข้อมูล */
+    #submit-button {
+      background-color: #ff8fa3;
+      color: #ffffff;
+      font-size: 1.1em;
+      font-weight: bold;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    #submit-button:hover {
+      background-color: #d63384;
+    }
+
+    #submit-button:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+  <h1>ส่งข้อความเสียงได้เลยครับ</h1>
+  <div id="input-container">
+    <input type="text" id="input-field" placeholder="พูดคำสั่งเพื่อเก็บข้อมูล" readonly>
+    <button id="submit-button">ส่งข้อมูล</button>
+  </div>
+  <script>
+    if (!window.webkitSpeechRecognition) {
+      alert("เบราว์เซอร์ของคุณไม่รองรับการบันทึกเสียง กรุณาใช้ Google Chrome");
+    } else {
+      const recognition = new webkitSpeechRecognition();
+      const inputField = document.getElementById("input-field");
+      const submitButton = document.getElementById("submit-button");
+
+      // URL ของ Google Apps Script (ใส่ URL ที่ได้รับจากการ Deploy Web App)
+      const apiUrl = "https://script.google.com/macros/s/AKfycbyh6DpzxuwO-ZN12jYxh1YVRLlz22MDS7MbXWc1RrpG75tHGP6hHu82kKZpoSZilIsFZA/exec";
+
+      recognition.onresult = function(event) {
+        const transcript = event.results[0][0].transcript;
+        inputField.value = transcript;
+      };
+
+      recognition.onerror = function(event) {
+        alert("เกิดข้อผิดพลาดในการบันทึกเสียง: " + event.error);
+      };
+
+      submitButton.addEventListener("click", function() {
+        const xhr = new XMLHttpRequest();
+        xhr.open("GET", `${apiUrl}?transcript=` + encodeURIComponent(inputField.value), true);
+        xhr.onload = function() {
+          if (xhr.status === 200) {
+            alert("พวกเราได้เก็บข้อมูลของคุณแล้ว");
+            inputField.value = "";
+          } else {
+            alert("เกิดข้อผิดพลาด: " + xhr.statusText);
+          }
+        };
+        xhr.onerror = function() {
+          alert("เกิดปัญหาเครือข่าย");
+        };
+        xhr.send();
+      });
+
+      inputField.addEventListener("click", function() {
+        recognition.start();
+        inputField.style.borderColor = "#ff8fa3";
+      });
+
+      recognition.onend = function() {
+        inputField.style.borderColor = "#f6abb6";
+      };
+    }
+  </script>
+</body>
+</html>
